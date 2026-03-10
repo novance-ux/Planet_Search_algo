@@ -61,6 +61,42 @@ tests = [
         },
         "expect": "error",
     },
+    {
+        "name": "Earth-like small planet (depth≈84 ppm, Sun-like star)",
+        "data": {
+            "koi_period": 365.0,
+            "koi_depth": 84.0,
+            "koi_duration": 6.0,
+            "koi_steff": 5778,
+            "koi_srad": 1.0,
+            "koi_score": 0.85,
+        },
+        "expect": "CONFIRMED — predicted radius ≈ 1.0 R⊕ (Earth-like)",
+    },
+    {
+        "name": "Mars-like sub-Earth (very shallow transit)",
+        "data": {
+            "koi_period": 687.0,
+            "koi_depth": 25.0,
+            "koi_duration": 5.0,
+            "koi_steff": 5778,
+            "koi_srad": 1.0,
+            "koi_score": 0.70,
+        },
+        "expect": "radius ≈ 0.5 R⊕ (Sub-Earth)",
+    },
+    {
+        "name": "Super-Earth (Kepler-69c-like)",
+        "data": {
+            "koi_period": 242.46,
+            "koi_depth": 240.0,
+            "koi_duration": 7.5,
+            "koi_steff": 5640,
+            "koi_srad": 0.93,
+            "koi_score": 0.90,
+        },
+        "expect": "CONFIRMED — predicted radius ≈ 1.7 R⊕ (Super-Earth)",
+    },
 ]
 
 for i, t in enumerate(tests, 1):

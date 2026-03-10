@@ -6,7 +6,7 @@ import NumberCounter from "./NumberCounter";
 
 export default function PlanetDetailModal({ result, inputs, onClose }) {
   const radius = result.predicted_radius;
-  const planetType = getPlanetType(radius);
+  const planetType = getPlanetType(radius, result.planet_type);
   const hab = getHabitability(
     radius,
     Number(inputs.koi_steff),

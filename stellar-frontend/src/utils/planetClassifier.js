@@ -1,7 +1,15 @@
 /** planetClassifier — Derives planet type and habitability from prediction data. */
-import { PLANET_TYPES } from "../constants/planetTypes";
+import { PLANET_TYPES, PLANET_TYPE_MAP } from "../constants/planetTypes";
 
-export function getPlanetType(radius) {
+/**
+ * Get planet type from radius (fallback) or backend label (preferred).
+ * @param {number} radius - Predicted planetary radius in R⊕
+ * @param {string} [backendType] - planet_type string from backend response
+ */
+export function getPlanetType(radius, backendType) {
+  if (backendType && PLANET_TYPE_MAP[backendType]) {
+    return PLANET_TYPE_MAP[backendType];
+  }
   for (const pt of PLANET_TYPES) {
     if (radius <= pt.maxRadius) return pt;
   }

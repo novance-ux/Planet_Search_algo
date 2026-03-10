@@ -19,7 +19,7 @@ export default function SearchResultsView({ result, inputs, onBack, onBackToHub 
 
   const isConfirmed = result.classification === "CONFIRMED";
   const radius = result.predicted_radius;
-  const planetType = radius ? getPlanetType(radius) : null;
+  const planetType = radius ? getPlanetType(radius, result.planet_type) : null;
   const habitability = radius
     ? getHabitability(radius, Number(inputs.koi_steff), Number(inputs.koi_period))
     : null;
@@ -79,6 +79,7 @@ export default function SearchResultsView({ result, inputs, onBack, onBackToHub 
         >
           <PlanetVisual
             predictedRadius={radius}
+            backendType={result.planet_type}
             onClick={() => setShowPlanetDetail(true)}
           />
         </motion.div>

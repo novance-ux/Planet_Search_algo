@@ -19,7 +19,7 @@ export default function CosmicContextSection({ result, inputs }) {
   const quadrant = userPlanet
     ? getQuadrant(userPlanet.period, userPlanet.radius)
     : null;
-  const planetType = userPlanet ? getPlanetType(userPlanet.radius) : null;
+  const planetType = userPlanet ? getPlanetType(userPlanet.radius, result?.planet_type) : null;
 
   return (
     <div className="w-full max-w-[1280px] mx-auto flex flex-col gap-8">

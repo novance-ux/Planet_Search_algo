@@ -2,10 +2,10 @@
 import { motion } from "framer-motion";
 import { getPlanetType } from "../../utils/planetClassifier";
 
-export default function PlanetVisual({ predictedRadius, onClick }) {
+export default function PlanetVisual({ predictedRadius, backendType, onClick }) {
   const earthR = 1;
   const clampedR = Math.min(predictedRadius, 8);
-  const planetType = getPlanetType(predictedRadius);
+  const planetType = getPlanetType(predictedRadius, backendType);
   const ratio = predictedRadius.toFixed(1);
 
   /* Sizes: Earth = 60px, planet scales relative to that */

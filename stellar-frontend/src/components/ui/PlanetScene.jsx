@@ -21,10 +21,10 @@ function RotatingSphere({ position, radius, color, label }) {
   );
 }
 
-export default function PlanetScene({ predictedRadius }) {
+export default function PlanetScene({ predictedRadius, backendType }) {
   const earthRadius = 1;
   const scale = Math.min(predictedRadius, 8);
-  const planetType = getPlanetType(predictedRadius);
+  const planetType = getPlanetType(predictedRadius, backendType);
   const ratio = predictedRadius.toFixed(1);
   const spacing = Math.max(earthRadius + scale + 1.5, 4);
 

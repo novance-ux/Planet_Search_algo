@@ -14,7 +14,7 @@ const item = {
 
 export default function PlanetInfoCard({ result, inputs }) {
   const radius = result.predicted_radius;
-  const type = getPlanetType(radius);
+  const type = getPlanetType(radius, result.planet_type);
   const hab = getHabitability(
     radius,
     Number(inputs.koi_steff),
