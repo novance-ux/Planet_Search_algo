@@ -4,9 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const MENU_ITEMS = [
   { id: "about", label: "About", icon: "🔭", angle: -90 },
-  { id: "studies", label: "Studies", icon: "📊", angle: -30 },
-  { id: "news", label: "News", icon: "📡", angle: 30 },
-  { id: "creators", label: "Creators", icon: "👥", angle: 90 },
+  { id: "creators", label: "Creators", icon: "👥", angle: 30 },
   { id: "search", label: "Search", icon: "🔍", angle: 150 },
 ];
 

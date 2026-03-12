@@ -4,8 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import LoginPage from "./components/pages/LoginPage";
 import PlanetHub from "./components/pages/PlanetHub";
 import AboutPage from "./components/pages/AboutPage";
-import StudiesPage from "./components/pages/StudiesPage";
-import NewsPage from "./components/pages/NewsPage";
+
 import CreatorsPage from "./components/pages/CreatorsPage";
 import SearchPage from "./components/pages/SearchPage";
 import LensTransition from "./components/ui/LensTransition";
@@ -73,13 +72,7 @@ export default function App() {
         <AboutPage key="about" onBack={handleBackToHub} />
       )}
 
-      {view === "studies" && (
-        <StudiesPage key="studies" onBack={handleBackToHub} />
-      )}
 
-      {view === "news" && (
-        <NewsPage key="news" onBack={handleBackToHub} />
-      )}
 
       {view === "creators" && (
         <CreatorsPage key="creators" onBack={handleBackToHub} />

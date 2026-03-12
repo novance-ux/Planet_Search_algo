@@ -1,13 +1,37 @@
 /** SearchPage — The main search portal: 11 inputs → transition → Earth + Planet results. */
-import { useState, useCallback, useEffect, Suspense, lazy } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import axios from "axios";
 import InputFormSection from "../sections/InputFormSection";
 import { usePrediction } from "../../hooks/usePrediction";
 import { useFormValidation } from "../../hooks/useFormValidation";
 import { DEMO_SIGNAL } from "../../constants/demoSignal";
+import { INPUT_FIELDS } from "../../constants/inputFields";
 import RadarLoader from "../ui/RadarLoader";
 import SearchResultsView from "./SearchResultsView";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+/** Parse a CSV string into an array of row objects keyed by header names. */
+function parseCsv(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(",").map((h) => h.trim());
+  return lines.slice(1).filter((l) => l.trim()).map((line) => {
+    const vals = line.split(",").map((v) => v.trim());
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = vals[i] ?? ""; });
+    return obj;
+  });
+}
+
+/** Known fields the backend accepts */
+const BACKEND_FIELDS = [
+  "koi_period", "koi_duration", "koi_depth", "koi_ror",
+  "koi_steff", "koi_srad", "ra", "dec", "koi_score",
+  "koi_teq", "koi_insol", "koi_prad",
+];
 
 export default function SearchPage({ onBack }) {
   const {
@@ -27,6 +51,11 @@ export default function SearchPage({ onBack }) {
   const [showResults, setShowResults] = useState(false);
   const [lastInputs, setLastInputs] = useState(null);
   const [toast, setToast] = useState(null);
+
+  // CSV batch states
+  const [csvUploading, setCsvUploading] = useState(false);
+  const [csvResults, setCsvResults] = useState(null);
+  const [csvError, setCsvError] = useState(null);
 
   const handleLoadDemo = useCallback(() => {
     const stringified = {};
@@ -79,6 +108,63 @@ export default function SearchPage({ onBack }) {
     setShowResults(false);
   }, []);
 
+  const fileInputRef = useRef(null);
+
+  // CSV upload handler — parses client-side, autofills form, runs predictions
+  const handleCsvUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setCsvError(null);
+    setCsvResults(null);
+
+    const text = await file.text();
+    const rows = parseCsv(text);
+    if (rows.length === 0) {
+      setCsvError("CSV is empty or has no data rows.");
+      return;
+    }
+
+    // Autofill form fields from the first row
+    const firstRow = rows[0];
+    const formData = {};
+    for (const field of INPUT_FIELDS) {
+      formData[field.key] = firstRow[field.key] ?? "";
+    }
+    // Also pick up backend-only fields like koi_teq, koi_insol, koi_prad
+    for (const key of BACKEND_FIELDS) {
+      if (!(key in formData) && firstRow[key]) {
+        formData[key] = firstRow[key];
+      }
+    }
+    setAllValues(formData);
+    setToast(`CSV loaded — ${rows.length} row${rows.length > 1 ? "s" : ""} detected. Form autofilled with row 1.`);
+    setTimeout(() => setToast(null), 4000);
+
+    // Run predictions for all rows
+    setCsvUploading(true);
+    const results = [];
+    for (const row of rows) {
+      const numericData = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (v !== "" && !isNaN(Number(v))) numericData[k] = Number(v);
+      }
+      try {
+        const resp = await axios.post(`${API_BASE}/api/predict`, numericData, {
+          timeout: 30000,
+          headers: { "Content-Type": "application/json" },
+        });
+        results.push(resp.data);
+      } catch (err) {
+        results.push({ error: err.response?.data?.error || "Prediction failed" });
+      }
+    }
+    setCsvResults(results);
+    setCsvUploading(false);
+
+    // Reset file input so the same file can be re-uploaded
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   return (
     <div className="fixed inset-0 bg-[var(--bg-primary)] overflow-y-auto">
       {/* Background stars */}
@@ -123,6 +209,95 @@ export default function SearchPage({ onBack }) {
       </AnimatePresence>
 
       <div className="relative z-10">
+        {/* CSV upload section */}
+        <div className="max-w-[1280px] mx-auto px-6 pt-8 pb-4">
+          <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] mb-4">
+            <label className="font-orbitron text-xs text-[var(--accent-cyan)] tracking-widest mb-3 block">
+              📄 BATCH ANALYSIS — UPLOAD CSV
+            </label>
+            <p className="font-exo text-xs text-[var(--text-secondary)] mb-3">
+              Upload a CSV file to auto-fill parameters and run predictions. The first row will fill the form below; all rows will be analyzed.
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleCsvUpload}
+              disabled={csvUploading}
+              className="block mb-3 text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-[var(--border-glow)] file:text-xs file:font-mono file:bg-transparent file:text-[var(--accent-cyan)] file:cursor-pointer hover:file:bg-[rgba(0,229,255,0.08)] file:transition-all"
+            />
+            {csvUploading && (
+              <span className="text-xs text-[var(--accent-cyan)] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--accent-cyan)] animate-pulse" />
+                Analyzing rows...
+              </span>
+            )}
+            {csvError && <span className="text-xs text-[var(--false-positive)]">{csvError}</span>}
+
+            {/* CSV format reference */}
+            <details className="mt-3">
+              <summary className="font-mono text-[10px] text-[var(--accent-violet)] cursor-pointer hover:text-[var(--accent-cyan)] transition-colors">
+                ▸ Expected CSV Format
+              </summary>
+              <div className="mt-2 p-3 rounded-lg bg-[var(--bg-input)] border border-[var(--border-subtle)] overflow-x-auto">
+                <p className="font-mono text-[10px] text-[var(--text-secondary)] mb-2">Required columns (header row + data rows):</p>
+                <code className="font-mono text-[10px] text-[var(--accent-cyan)] block whitespace-nowrap">
+                  koi_period,koi_depth,koi_duration,koi_steff,koi_srad,ra,dec,koi_score,koi_ror
+                </code>
+                <p className="font-mono text-[10px] text-[var(--text-secondary)] mt-2 mb-1">Example row:</p>
+                <code className="font-mono text-[10px] text-[var(--accent-gold)] block whitespace-nowrap">
+                  289.9,492.0,7.4,5793,0.98,291.0,48.14,0.9,0.048
+                </code>
+                <p className="font-mono text-[10px] text-[var(--text-secondary)] mt-2 opacity-60">
+                  Optional columns: koi_teq, koi_insol, koi_prad, koi_impact, koi_model_snr, koi_num_transits, koi_slogg, koi_smass
+                </p>
+              </div>
+            </details>
+          </div>
+
+          {/* CSV batch results table */}
+          {csvResults && csvResults.length > 0 && (
+            <div className="overflow-x-auto border border-[var(--border-subtle)] rounded-xl bg-[var(--bg-card)] p-4 mb-4">
+              <h3 className="font-orbitron text-xs text-[var(--accent-cyan)] tracking-widest mb-3">
+                BATCH RESULTS — {csvResults.length} ROW{csvResults.length > 1 ? "S" : ""}
+              </h3>
+              <table className="min-w-full text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-[var(--border-subtle)]">
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">#</th>
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">Prediction</th>
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">Prob.</th>
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">Radius (R⊕)</th>
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">Type</th>
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">Habitability</th>
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">Eq. Temp (K)</th>
+                    <th className="py-2 px-3 text-left text-[var(--text-secondary)]">Error</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {csvResults.map((r, i) => (
+                    <tr key={i} className={`border-b border-[rgba(255,255,255,0.03)] ${r.error ? "bg-[rgba(255,82,82,0.06)]" : "hover:bg-[rgba(0,229,255,0.04)]"}`}>
+                      <td className="py-2 px-3 text-[var(--text-mono)]">{i + 1}</td>
+                      <td className="py-2 px-3">
+                        {r.prediction ? (
+                          <span className={r.prediction === "CONFIRMED" ? "text-[var(--confirmed)]" : "text-[var(--false-positive)]"}>
+                            {r.prediction}
+                          </span>
+                        ) : "—"}
+                      </td>
+                      <td className="py-2 px-3 text-[var(--text-mono)]">{r.confirmation_probability != null ? `${r.confirmation_probability}%` : "—"}</td>
+                      <td className="py-2 px-3 text-[var(--accent-gold)]">{r.predicted_radius ?? "—"}</td>
+                      <td className="py-2 px-3 text-[var(--text-mono)]">{r.planet_type ?? "—"}</td>
+                      <td className="py-2 px-3 text-[var(--text-mono)]">{r.habitability_score != null ? `${r.habitability_score}/100` : "—"}</td>
+                      <td className="py-2 px-3 text-[var(--text-mono)]">{r.equilibrium_temp ?? "—"}</td>
+                      <td className="py-2 px-3 text-[var(--false-positive)]">{r.error ?? ""}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
         {!showResults ? (
           /* Input form view */
           <div className="max-w-[1280px] mx-auto px-6 py-12">

@@ -1,4 +1,4 @@
-/** CreatorsPage — Info on the team behind Stellar Analytics. */
+/** CreatorsPage — The team behind Stellar Analytics. */
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
@@ -7,28 +7,22 @@ const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
 const CREATORS = [
   {
-    name: "Stellar Analytics Team",
-    role: "Development & Research",
+    name: "Soham Roy",
+    role: "Full Stack Developer & ML Engineer",
     avatar: "🚀",
-    desc: "Building the next generation of exoplanet verification tools using machine learning and data science.",
+    desc: "Architected the end-to-end pipeline — from training ensemble classifiers on Kepler data to building the Flask API and React frontend for real-time exoplanet verification.",
   },
   {
-    name: "ML Engineers",
-    role: "Model Training & Optimization",
+    name: "Novance Patel",
+    role: "Data Scientist & Backend Engineer",
     avatar: "🧠",
-    desc: "Training ensemble classifiers and regression models on Kepler mission data to achieve high-accuracy predictions.",
+    desc: "Designed the data preprocessing pipeline, feature engineering strategies, and regression models that power accurate planetary radius predictions across all size classes.",
   },
   {
-    name: "Frontend Team",
-    role: "UI/UX & Visualization",
+    name: "Rudra Raj",
+    role: "Frontend Developer & UI Designer",
     avatar: "🎨",
-    desc: "Designing an immersive space-themed interface with 3D planet visualization, interactive charts, and cinematic transitions.",
-  },
-  {
-    name: "Data Scientists",
-    role: "Data Analysis & EDA",
-    avatar: "📊",
-    desc: "Performing exploratory data analysis on the Kepler cumulative dataset, feature engineering, and model evaluation.",
+    desc: "Crafted the immersive space-themed interface with cinematic transitions, interactive planet visualizations, and responsive design for an engaging user experience.",
   },
 ];
 
@@ -75,27 +69,27 @@ export default function CreatorsPage({ onBack }) {
           </motion.div>
 
           {/* Creator cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {CREATORS.map((creator, i) => (
               <motion.div
                 key={i}
                 variants={item}
                 className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-glow)] transition-colors duration-300"
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-14 h-14 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-glow)] flex items-center justify-center text-2xl shadow-[var(--glow-sm)]">
+                <div className="flex flex-col items-center text-center gap-3 mb-4">
+                  <div className="w-16 h-16 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-glow)] flex items-center justify-center text-3xl shadow-[var(--glow-sm)]">
                     {creator.avatar}
                   </div>
                   <div>
                     <h2 className="font-orbitron text-sm text-[var(--text-primary)]">
                       {creator.name}
                     </h2>
-                    <p className="font-mono text-[10px] text-[var(--accent-cyan)] tracking-widest uppercase">
+                    <p className="font-mono text-[10px] text-[var(--accent-cyan)] tracking-widest uppercase mt-1">
                       {creator.role}
                     </p>
                   </div>
                 </div>
-                <p className="font-exo text-sm text-[var(--text-secondary)] leading-relaxed">
+                <p className="font-exo text-sm text-[var(--text-secondary)] leading-relaxed text-center">
                   {creator.desc}
                 </p>
               </motion.div>
@@ -112,7 +106,7 @@ export default function CreatorsPage({ onBack }) {
               exoplanet verification through an immersive, space-themed interface.
             </p>
             <div className="flex flex-wrap gap-3">
-              {["React", "Flask", "Three.js", "Framer Motion", "Tailwind CSS", "Scikit-learn", "LightGBM"].map((tech) => (
+              {["React", "Flask", "Framer Motion", "Tailwind CSS", "Scikit-learn", "LightGBM", "Recharts"].map((tech) => (
                 <span
                   key={tech}
                   className="px-3 py-1 rounded-full border border-[var(--border-subtle)] font-mono text-[10px] text-[var(--text-mono)]"
